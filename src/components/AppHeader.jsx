@@ -49,6 +49,12 @@ function AppHeader() {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <header className="border-b border-gray-800 p-4">
       <div className="container mx-auto flex items-center justify-between gap-4">
@@ -69,6 +75,7 @@ function AppHeader() {
             value={queryText}
             className="w-full rounded-lg bg-gray-900 px-4 py-2 pr-10 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             onChange={(e) => setQueryText(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
           <Search
             className="absolute top-2.5 right-3 text-gray-400"

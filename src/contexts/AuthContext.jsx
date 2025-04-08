@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useCallback, useMemo, useReducer } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
     initialState,
   );
 
-  function signin(userObj) {
+  const signin = useCallback((userObj) => {
     if (userObj) {
       sessionStorage.setItem("id", userObj.id);
       sessionStorage.setItem("name", userObj.name);
@@ -52,9 +52,9 @@ export const AuthProvider = ({ children }) => {
 
       dispatch({ type: "signedin", payload: userObj });
     }
-  }
+  }, []);
 
-  async function signout() {
+  const signout = useCallback(async () => {
     try {
       const response = await axios.post(
         API_BASE_URL + END_POINT_SIGNOUT,
@@ -75,9 +75,9 @@ export const AuthProvider = ({ children }) => {
         payload: "There was an error signing out...",
       });
     }
-  }
+  }, []);
 
-  async function deleteUser(id, email) {
+  const deleteUser = useCallback(async (id, email) => {
     try {
       const response = await axios.delete(
         API_BASE_URL + END_POINT_USER + "/" + id,
@@ -98,23 +98,15 @@ export const AuthProvider = ({ children }) => {
         payload: "There was an error deleting profile information...",
       });
     }
-  }
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({ id, name, email, picture, error, signin, signout, deleteUser }),
+    [id, name, email, picture, error, signin, signout, deleteUser],
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        id,
-        name,
-        email,
-        picture,
-        error,
-        signin,
-        signout,
-        deleteUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 

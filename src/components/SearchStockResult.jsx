@@ -5,6 +5,8 @@ import SpinningLoader from "./SpinningLoader";
 import MessageDialog from "./MessageDialog";
 import { ArrowLeft, SquarePlus } from "lucide-react";
 
+const WATCH_LIST_LIMIT = 20;
+
 function SearchStockResult() {
   const {
     watchedStocks,
@@ -15,6 +17,8 @@ function SearchStockResult() {
   } = useContext(StockContext);
   const [showAlertMessageDialog, setShowAlertMessageDialog] = useState(false);
   const [showSuccessMessageDialog, setShowSuccessMessageDialog] =
+    useState(false);
+  const [showExceedNumOfStockLimitDialog, setShowExceedNumOfStockLimitDialog] =
     useState(false);
   const [refreshWatchedStock, setRefreshWatchedStock] = useState(false);
   const [tempAddedStockList, setTempAddedStockList] = useState([]);
@@ -35,9 +39,12 @@ function SearchStockResult() {
     if (
       existInWatchedStocks.length > 0 ||
       tempAddedStockListRef.current.includes(symbol)
-    )
+    ) {
       setShowAlertMessageDialog(true);
-    else {
+    } else if (watchedStocks.length >= WATCH_LIST_LIMIT) {
+      setShowExceedNumOfStockLimitDialog(true);
+      return;
+    } else {
       const addResult = await addToWatchList(symbol);
       if (addResult) {
         setShowSuccessMessageDialog(true);
@@ -84,7 +91,6 @@ function SearchStockResult() {
             <div className="text-left">Industry</div>
             <div className="text-center">Add to Watch List</div>
           </div>
-
           {/* Results List */}
           <div className="divide-y divide-gray-800">
             {searchResult.map((stock) => (
@@ -126,14 +132,21 @@ function SearchStockResult() {
             isOpen={showAlertMessageDialog}
             onClose={() => setShowAlertMessageDialog(false)}
             title="Attention"
-            message={`This stock is already in the watch list.`}
+            message="This stock is already in the watch list."
           />
           <MessageDialog
             type="check"
             isOpen={showSuccessMessageDialog}
             onClose={() => setShowSuccessMessageDialog(false)}
             title="Information"
-            message={`Added to the watch list successfully.`}
+            message="Added to the watch list successfully."
+          />
+          <MessageDialog
+            type="alert"
+            isOpen={showExceedNumOfStockLimitDialog}
+            onClose={() => setShowExceedNumOfStockLimitDialog(false)}
+            title="Attention"
+            message="The watch list is full. For demonstration purpose, the limit is set to 20."
           />
         </div>
       )}

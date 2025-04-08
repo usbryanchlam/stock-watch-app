@@ -1,4 +1,4 @@
-import { createContext, useReducer } from "react";
+import { createContext, useCallback, useMemo, useReducer } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 
@@ -76,7 +76,7 @@ export const StockProvider = ({ children }) => {
     dispatch,
   ] = useReducer(reducer, initialState);
 
-  async function loadWatchedStock() {
+  const loadWatchedStock = useCallback(async () => {
     dispatch({ type: "loading" });
     try {
       const response = await axios.get(API_BASE_URL + END_POINT_WATCHLIST, {
@@ -95,9 +95,9 @@ export const StockProvider = ({ children }) => {
         payload: "There was an error loading watched stocks...",
       });
     }
-  }
+  }, []);
 
-  async function searchStock(queryText) {
+  const searchStock = useCallback(async (queryText) => {
     if (!queryText && queryText.length < 3) return;
     dispatch({ type: "loading" });
     try {
@@ -117,9 +117,9 @@ export const StockProvider = ({ children }) => {
         payload: "There was an error loading search stock result...",
       });
     }
-  }
+  }, []);
 
-  async function addToWatchList(symbol) {
+  const addToWatchList = useCallback(async (symbol) => {
     try {
       const response = await axios.post(
         API_BASE_URL + END_POINT_WATCHLIST,
@@ -136,9 +136,9 @@ export const StockProvider = ({ children }) => {
         payload: "There was an error adding stock to the watch list...",
       });
     }
-  }
+  }, []);
 
-  async function removeFromWatchList(symbol) {
+  const removeFromWatchList = useCallback(async (symbol) => {
     try {
       const response = await axios.delete(
         API_BASE_URL + END_POINT_WATCHLIST + "/" + symbol,
@@ -159,9 +159,9 @@ export const StockProvider = ({ children }) => {
         payload: "There was an error removing stock from the watch list...",
       });
     }
-  }
+  }, []);
 
-  async function getStockAlert(stock) {
+  const getStockAlert = useCallback(async (stock) => {
     try {
       const response = await axios.get(
         API_BASE_URL + END_POINT_SET_ALERT + "/" + stock.symbol,
@@ -184,9 +184,9 @@ export const StockProvider = ({ children }) => {
         payload: "There was an error getting existing alert of the stock...",
       });
     }
-  }
+  }, []);
 
-  async function saveStockAlert(newStockAlert) {
+  const saveStockAlert = useCallback(async (newStockAlert) => {
     try {
       if (!newStockAlert.id) {
         const response = await axios.post(
@@ -213,34 +213,53 @@ export const StockProvider = ({ children }) => {
         payload: "There was an error adding stock to the watch list...",
       });
     }
-  }
+  }, []);
 
-  function clearData() {
+  const clearData = useCallback(() => {
     sessionStorage.removeItem("currentStock");
     sessionStorage.removeItem("stockAlert");
     dispatch({ type: "clearing", payload: initialState });
-  }
+  }, []);
+
+  const contextValue = useMemo(
+    () => ({
+      watchedStocks,
+      lastRefreshDatetime,
+      isLoading,
+      queryString,
+      searchResult,
+      currentStock,
+      stockAlert,
+      error,
+      loadWatchedStock,
+      searchStock,
+      addToWatchList,
+      removeFromWatchList,
+      getStockAlert,
+      saveStockAlert,
+      clearData,
+    }),
+    [
+      watchedStocks,
+      lastRefreshDatetime,
+      isLoading,
+      queryString,
+      searchResult,
+      currentStock,
+      stockAlert,
+      error,
+      loadWatchedStock,
+      searchStock,
+      addToWatchList,
+      removeFromWatchList,
+      getStockAlert,
+      saveStockAlert,
+      clearData,
+    ],
+  );
 
   return (
-    <StockContext.Provider
-      value={{
-        watchedStocks,
-        lastRefreshDatetime,
-        isLoading,
-        queryString,
-        searchResult,
-        currentStock,
-        stockAlert,
-        error,
-        loadWatchedStock,
-        searchStock,
-        addToWatchList,
-        removeFromWatchList,
-        getStockAlert,
-        saveStockAlert,
-        clearData,
-      }}
-    >
+    <StockContext.Provider value={contextValue}>
       {children}
     </StockContext.Provider>
   );
