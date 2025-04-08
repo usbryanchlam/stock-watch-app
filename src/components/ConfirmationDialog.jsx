@@ -1,4 +1,5 @@
 import { TriangleAlert } from "lucide-react";
+import PropTypes from "prop-types";
 
 function ConfirmationDialog({
   isOpen,
@@ -45,5 +46,16 @@ function ConfirmationDialog({
     </div>
   );
 }
+
+ConfirmationDialog.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+  title: PropTypes.string.isRequired,
+  message: PropTypes.string.isRequired,
+  closeText: PropTypes.string,
+  confirmText: PropTypes.string,
+  alertIconColor: PropTypes.string,
+};
 
 export default ConfirmationDialog;

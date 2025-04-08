@@ -1,9 +1,10 @@
 import "../main.css";
 
+const GOOGLE_OAUTH2_URL = import.meta.env.VITE_GOOGLE_OAUTH2_URL;
+
 function GoogleSignInButton() {
   const handleGoogleLogin = () => {
-    // Directly redirect to the Google OAuth endpoint
-    window.location.href = "http://localhost:8080";
+    window.location.href = GOOGLE_OAUTH2_URL;
   };
   return (
     <div className="flex w-full items-center justify-center rounded-lg bg-white px-4 py-3 font-medium text-gray-700 transition duration-300 hover:bg-gray-50">
@@ -15,7 +16,6 @@ function GoogleSignInButton() {
               version="1.1"
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 48 48"
-              //   xmlnsXlink="http://www.w3.org/1999/xlink"
               style={{ display: "block" }}
             >
               <path

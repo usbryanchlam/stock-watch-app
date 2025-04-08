@@ -1,18 +1,8 @@
-import { useEffect } from "react";
+import PropTypes from "prop-types";
 import { CircleCheck, CircleAlert, X } from "lucide-react";
 
 function MessageDialog({ type = "check", isOpen, onClose, title, message }) {
   if (!isOpen) return null;
-
-  // Auto-close after 3 seconds
-  // useEffect(() => {
-  //   if (isOpen) {
-  //     const timer = setTimeout(() => {
-  //       onClose();
-  //     }, 3000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [isOpen, onClose]);
 
   return (
     <div className="fixed inset-x-0 top-4 z-50 flex items-start justify-center px-4">
@@ -38,5 +28,13 @@ function MessageDialog({ type = "check", isOpen, onClose, title, message }) {
     </div>
   );
 }
+
+MessageDialog.propTypes = {
+  type: PropTypes.string,
+  isOpen: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  title: PropTypes.string.isRequired,
+  message: PropTypes.string.isRequired,
+};
 
 export default MessageDialog;

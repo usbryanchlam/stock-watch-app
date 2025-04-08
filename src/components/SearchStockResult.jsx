@@ -4,108 +4,6 @@ import StockContext from "../contexts/StockContext";
 import SpinningLoader from "./SpinningLoader";
 import MessageDialog from "./MessageDialog";
 import { ArrowLeft, SquarePlus } from "lucide-react";
-import AuthContext from "../contexts/AuthContext";
-
-// Sample stock data
-// const allStocks = [
-//   {
-//     logo: "https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/AAPL.png",
-//     code: "AAPL",
-//     name: "Apple Inc.",
-//     currentPrice: 187.68,
-//     previousClose: 185.92,
-//     percentChange: 0.95,
-//     volume: "55.2M",
-//     marketCap: "2.91T",
-//     sector: "Technology",
-//   },
-//   {
-//     logo: "https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/MSFT.png",
-//     code: "MSFT",
-//     name: "Microsoft Corporation",
-//     currentPrice: 417.88,
-//     previousClose: 415.32,
-//     percentChange: 0.62,
-//     volume: "22.3M",
-//     marketCap: "3.10T",
-//     sector: "Technology",
-//   },
-//   {
-//     logo: "https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/GOOG.png",
-//     code: "GOOGL",
-//     name: "Alphabet Inc.",
-//     currentPrice: 172.63,
-//     previousClose: 175.09,
-//     percentChange: -1.4,
-//     volume: "28.7M",
-//     marketCap: "2.15T",
-//     sector: "Technology",
-//   },
-//   {
-//     logo: "https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/AMZN.png",
-//     code: "AMZN",
-//     name: "Amazon.com Inc.",
-//     currentPrice: 183.2,
-//     previousClose: 180.75,
-//     percentChange: 1.35,
-//     volume: "33.5M",
-//     marketCap: "1.89T",
-//     sector: "Consumer Cyclical",
-//   },
-//   {
-//     logo: "https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/TSLA.png",
-//     code: "TSLA",
-//     name: "Tesla Inc.",
-//     currentPrice: 172.82,
-//     previousClose: 177.55,
-//     percentChange: -2.66,
-//     volume: "94.1M",
-//     marketCap: "550.32B",
-//     sector: "Automotive",
-//   },
-//   {
-//     logo: "https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/FB.png",
-//     code: "META",
-//     name: "Meta Platforms Inc.",
-//     currentPrice: 478.22,
-//     previousClose: 472.67,
-//     percentChange: 1.17,
-//     volume: "18.9M",
-//     marketCap: "1.22T",
-//     sector: "Technology",
-//   },
-//   {
-//     logo: "https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/NFLX.png",
-//     code: "NFLX",
-//     name: "Netflix Inc.",
-//     currentPrice: 628.55,
-//     previousClose: 622.83,
-//     percentChange: 0.92,
-//     volume: "3.2M",
-//     marketCap: "272.55B",
-//     sector: "Entertainment",
-//   },
-//   {
-//     logo: "https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/NVDA.png",
-//     code: "NVDA",
-//     name: "NVIDIA Corporation",
-//     currentPrice: 896.48,
-//     previousClose: 880.1,
-//     percentChange: 1.86,
-//     volume: "42.6M",
-//     marketCap: "2.21T",
-//     sector: "Technology",
-//   },
-// ];
-
-// const searchQuery = "A";
-
-// Filter stocks based on search query (case insensitive)
-// const results = allStocks.filter(
-//   (stock) =>
-//     stock.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-//     stock.name.toLowerCase().includes(searchQuery.toLowerCase()),
-// );
 
 function SearchStockResult() {
   const {
@@ -113,10 +11,8 @@ function SearchStockResult() {
     isLoading,
     queryString,
     searchResult,
-    loadWatchedStock,
     addToWatchList,
   } = useContext(StockContext);
-  const { token } = useContext(AuthContext);
   const [showAlertMessageDialog, setShowAlertMessageDialog] = useState(false);
   const [showSuccessMessageDialog, setShowSuccessMessageDialog] =
     useState(false);
@@ -129,7 +25,6 @@ function SearchStockResult() {
     return <SpinningLoader size="large" text="Loading search result..." />;
 
   const onBackClick = () => {
-    if (refreshWatchedStock) loadWatchedStock(token);
     navigate("/app");
   };
 
@@ -143,7 +38,7 @@ function SearchStockResult() {
     )
       setShowAlertMessageDialog(true);
     else {
-      const addResult = await addToWatchList(token, symbol);
+      const addResult = await addToWatchList(symbol);
       if (addResult) {
         setShowSuccessMessageDialog(true);
         if (!refreshWatchedStock) setRefreshWatchedStock(true);
@@ -152,7 +47,6 @@ function SearchStockResult() {
           ...tempAddedStockListRef.current,
           symbol,
         ];
-        // console.log(tempAddedStockListRef.current);
       }
     }
   }

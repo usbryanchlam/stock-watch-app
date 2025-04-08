@@ -1,7 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { RefreshCw, Settings } from "lucide-react";
-import AuthContext from "../contexts/AuthContext";
 import StockContext from "../contexts/StockContext";
 import SpinningLoader from "./SpinningLoader";
 import MessageDialog from "./MessageDialog";
@@ -19,7 +18,6 @@ function WatchList() {
     getStockAlert,
     error,
   } = useContext(StockContext);
-  const { token } = useContext(AuthContext);
   const [showRefreshWarningDialog, setShowRefreshWarningDialog] =
     useState(false);
   const [showErrorMessageDialog, setShowErrorMessageDialog] = useState(false);
@@ -27,6 +25,7 @@ function WatchList() {
   useEffect(
     function () {
       if (error !== "") setShowErrorMessageDialog(true);
+      loadWatchedStock();
     },
     [error],
   );
@@ -49,13 +48,12 @@ function WatchList() {
     if (diff < 60000) {
       setShowRefreshWarningDialog(true);
     } else {
-      loadWatchedStock(token);
+      loadWatchedStock();
     }
   };
 
   async function handleSetAlert(symbol) {
     const result = await getStockAlert(
-      token,
       watchedStocks.filter((stock) => stock.symbol === symbol)[0],
     );
     if (!result) setShowErrorMessageDialog(true);
@@ -86,7 +84,6 @@ function WatchList() {
             <div className="text-right">Current Price</div>
             <div className="text-right">Prev. Close</div>
             <div className="text-right">Change (%)</div>
-            {/* <div className="text-center">Alert</div> */}
             <div className="text-center">Alert Setting</div>
           </div>
 
@@ -115,9 +112,6 @@ function WatchList() {
                   {stock.percentChange >= 0 ? "+" : "-"}
                   {Math.abs(stock.percentChange).toFixed(2)}%
                 </div>
-                {/* <div className="items-center justify-items-center">
-                  <Bell className="items-center" size={20} />
-                </div> */}
                 <div className="items-center justify-items-center">
                   <button
                     className="flex items-center gap-2 rounded-lg px-1.5 py-0.5"
@@ -138,7 +132,7 @@ function WatchList() {
           title="Attention"
           message={`Please try again after 1 minute from the last refresh time.`}
         />
-        {/* Refresh Warning Dialog */}
+        {/* Error Message Dialog */}
         <MessageDialog
           type="alert"
           isOpen={showErrorMessageDialog}

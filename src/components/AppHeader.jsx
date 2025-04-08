@@ -12,7 +12,7 @@ function AppHeader() {
   const [showConfirmDeleteAccount, setShowConfirmDeleteAccount] =
     useState(false);
 
-  const { id, email, token, name, picture, signout, error, deleteUser } =
+  const { id, email, name, picture, signout, error, deleteUser } =
     useContext(AuthContext);
   const { searchStock, clearData } = useContext(StockContext);
   const navigate = useNavigate();
@@ -21,16 +21,17 @@ function AppHeader() {
     setShowConfirmDeleteAccount(true);
   };
 
-  function justSignOut() {
+  async function justSignOut() {
     clearData();
-    signout();
-    navigate("/");
+    const signoutSuccess = await signout();
+    if (signoutSuccess) navigate("/");
+    else alert(error);
   }
 
   async function handleConfirmDeleteAccount() {
     clearData();
 
-    const deleteSuccess = await deleteUser(token, id, email);
+    const deleteSuccess = await deleteUser(id, email);
     if (deleteSuccess) navigate("/profileDeleted");
     else alert(error);
   }
@@ -43,7 +44,7 @@ function AppHeader() {
     if (!queryText || queryText.length < 3) setShowMessageDialog(true);
     else {
       setQueryText("");
-      searchStock(token, queryText);
+      searchStock(queryText);
       navigate("searchResult");
     }
   };
@@ -60,7 +61,6 @@ function AppHeader() {
           <span className="font-medium">{name}</span>
           <Home size={26} onClick={handleHome} />
         </div>
-        {/* <form onSubmit={handleSubmit}> */}
         <div className="relative w-64 md:w-80">
           <input
             id="searchbar"
@@ -70,16 +70,13 @@ function AppHeader() {
             className="w-full rounded-lg bg-gray-900 px-4 py-2 pr-10 focus:ring-1 focus:ring-blue-500 focus:outline-none"
             onChange={(e) => setQueryText(e.target.value)}
           />
-          {/* <Link to="searchResult"> */}
           <Search
             className="absolute top-2.5 right-3 text-gray-400"
             size={18}
             onClick={handleSearch}
             aria-label="Search"
           />
-          {/* </Link> */}
         </div>
-        {/* </form> */}
 
         <button
           id="signOutBtn"

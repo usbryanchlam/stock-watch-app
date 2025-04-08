@@ -4,13 +4,13 @@ import AuthContext from "../contexts/AuthContext";
 
 function ProtectedRoute({ children }) {
   const navigate = useNavigate();
-  const { token } = useContext(AuthContext);
+  const { id } = useContext(AuthContext);
 
   useEffect(() => {
-    if (!token) {
+    if (!id) {
       navigate("/login");
     }
-  }, [token, navigate]);
+  }, [id, navigate]);
 
   return children;
 }

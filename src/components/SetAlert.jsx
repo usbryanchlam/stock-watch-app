@@ -1,53 +1,12 @@
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AuthContext from "../contexts/AuthContext";
 import StockContext from "../contexts/StockContext";
 import ConfirmationDialog from "./ConfirmationDialog";
 import MessageDialog from "./MessageDialog";
 import { ArrowLeft, Bell } from "lucide-react";
 
-// Mock data for demonstration
-// const mockStocks = [
-//   {
-//     symbol: "AAPL",
-//     name: "Apple Inc.",
-//     currentPrice: 178.72,
-//     prevClose: 175.34,
-//     percentChange: 1.93,
-//   },
-//   {
-//     symbol: "MSFT",
-//     name: "Microsoft Corporation",
-//     currentPrice: 412.31,
-//     prevClose: 409.06,
-//     percentChange: 0.79,
-//   },
-//   {
-//     symbol: "GOOGL",
-//     name: "Alphabet Inc.",
-//     currentPrice: 152.16,
-//     prevClose: 150.77,
-//     percentChange: 0.92,
-//   },
-//   {
-//     symbol: "AMZN",
-//     name: "Amazon.com Inc.",
-//     currentPrice: 180.75,
-//     prevClose: 183.2,
-//     percentChange: -1.34,
-//   },
-//   {
-//     symbol: "TSLA",
-//     name: "Tesla, Inc.",
-//     currentPrice: 175.43,
-//     prevClose: 172.63,
-//     percentChange: 1.62,
-//   },
-// ];
-
 function SetAlert() {
   const navigate = useNavigate();
-  const { token } = useContext(AuthContext);
   const { currentStock, stockAlert, removeFromWatchList, saveStockAlert } =
     useContext(StockContext);
   const [alertActive, setAlertActive] = useState(
@@ -60,7 +19,9 @@ function SetAlert() {
     !stockAlert ? "ABOVE" : stockAlert.condition,
   );
   const isTriggered = !stockAlert ? false : stockAlert.isTriggered;
-  const triggeredDateTime = !stockAlert ? null : stockAlert.triggeredAt;
+  const triggeredDateTime = !stockAlert
+    ? null
+    : new Date(stockAlert.triggeredAt).toLocaleString();
 
   // Dialog states
   const [showConfirmRemoveDialog, setShowConfirmRemoveDialog] = useState(false);
@@ -78,7 +39,7 @@ function SetAlert() {
       condition: condition,
     };
 
-    const saveSuccess = await saveStockAlert(token, newStockAlert);
+    const saveSuccess = await saveStockAlert(newStockAlert);
     if (saveSuccess) {
       setShowSuccessDialog(true);
     } else {
@@ -95,7 +56,7 @@ function SetAlert() {
   };
 
   async function confirmRemoveAlert() {
-    const removeSuccess = await removeFromWatchList(token, currentStock.symbol);
+    const removeSuccess = await removeFromWatchList(currentStock.symbol);
     if (removeSuccess) {
       navigate("/app");
     }
@@ -104,13 +65,11 @@ function SetAlert() {
   const onBackClick = () => {
     navigate("/app");
   };
-
   const isPositive = !currentStock.percentChange
     ? false
     : currentStock.percentChange >= 0;
   return (
     <div className="p-4">
-      {/* <h2 className="mb-4 text-xl font-semibold">Set Price Alert</h2> */}
       <div className="mb-2">
         <button
           onClick={onBackClick}
@@ -184,7 +143,7 @@ function SetAlert() {
           </div>
           {isTriggered && triggeredDateTime && (
             <div className="text-xs text-gray-400">
-              Triggered on: {triggeredDateTime.toLocaleString()}
+              Triggered on: {triggeredDateTime}
             </div>
           )}
         </div>

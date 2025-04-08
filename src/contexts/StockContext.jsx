@@ -10,8 +10,8 @@ const initialState = {
   isLoading: false,
   queryString: "",
   searchResult: [],
-  currentStock: {},
-  stockAlert: null,
+  currentStock: JSON.parse(sessionStorage.getItem("currentStock")) || {},
+  stockAlert: JSON.parse(sessionStorage.getItem("stockAlert")) || null,
   error: "",
 };
 
@@ -76,19 +76,19 @@ export const StockProvider = ({ children }) => {
     dispatch,
   ] = useReducer(reducer, initialState);
 
-  async function loadWatchedStock(token) {
-    if (!token) return;
+  async function loadWatchedStock() {
     dispatch({ type: "loading" });
     try {
       const response = await axios.get(API_BASE_URL + END_POINT_WATCHLIST, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        withCredentials: true,
       });
       const responseData = response.data.data;
       dispatch({ type: "watchedStocks/loaded", payload: responseData });
       const localeString = new Date(response.data.timestamp).toLocaleString();
       dispatch({ type: "refreshing", payload: localeString });
+
+      sessionStorage.removeItem("currentStock");
+      sessionStorage.removeItem("stockAlert");
     } catch {
       dispatch({
         type: "rejected",
@@ -97,14 +97,12 @@ export const StockProvider = ({ children }) => {
     }
   }
 
-  async function searchStock(token, queryText) {
+  async function searchStock(queryText) {
     if (!queryText && queryText.length < 3) return;
     dispatch({ type: "loading" });
     try {
       const response = await axios.get(API_BASE_URL + END_POINT_SEARCH_STOCK, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        withCredentials: true,
         params: {
           query: `${queryText}`,
         },
@@ -121,15 +119,13 @@ export const StockProvider = ({ children }) => {
     }
   }
 
-  async function addToWatchList(token, symbol) {
+  async function addToWatchList(symbol) {
     try {
       const response = await axios.post(
         API_BASE_URL + END_POINT_WATCHLIST,
         { symbol: symbol },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
         },
       );
 
@@ -142,14 +138,12 @@ export const StockProvider = ({ children }) => {
     }
   }
 
-  async function removeFromWatchList(token, symbol) {
+  async function removeFromWatchList(symbol) {
     try {
       const response = await axios.delete(
         API_BASE_URL + END_POINT_WATCHLIST + "/" + symbol,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
         },
       );
 
@@ -167,18 +161,20 @@ export const StockProvider = ({ children }) => {
     }
   }
 
-  async function getStockAlert(token, stock) {
+  async function getStockAlert(stock) {
     try {
       const response = await axios.get(
         API_BASE_URL + END_POINT_SET_ALERT + "/" + stock.symbol,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
         },
       );
 
       const responseData = response.data.data;
+
+      sessionStorage.setItem("currentStock", JSON.stringify(stock));
+      sessionStorage.setItem("stockAlert", JSON.stringify(responseData));
+
       dispatch({ type: "viewing/stock", payload: stock });
       dispatch({ type: "setting/alert", payload: responseData });
       return response.data.success;
@@ -190,16 +186,14 @@ export const StockProvider = ({ children }) => {
     }
   }
 
-  async function saveStockAlert(token, newStockAlert) {
+  async function saveStockAlert(newStockAlert) {
     try {
       if (!newStockAlert.id) {
         const response = await axios.post(
           API_BASE_URL + END_POINT_SET_ALERT,
           newStockAlert,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true,
           },
         );
         return response.data.success;
@@ -208,9 +202,7 @@ export const StockProvider = ({ children }) => {
           API_BASE_URL + END_POINT_SET_ALERT + "/" + newStockAlert.id,
           newStockAlert,
           {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true,
           },
         );
         return response.data.success;
@@ -224,6 +216,8 @@ export const StockProvider = ({ children }) => {
   }
 
   function clearData() {
+    sessionStorage.removeItem("currentStock");
+    sessionStorage.removeItem("stockAlert");
     dispatch({ type: "clearing", payload: initialState });
   }
 

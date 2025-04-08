@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 
 function SpinningLoader({
   size = "medium",
@@ -65,5 +66,11 @@ function SpinningLoader({
     </div>
   );
 }
+
+SpinningLoader.propTypes = {
+  size: PropTypes.string,
+  color: PropTypes.string,
+  text: PropTypes.string,
+};
 
 export default SpinningLoader;
