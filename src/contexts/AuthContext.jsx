@@ -1,6 +1,7 @@
 import { createContext, useCallback, useMemo, useReducer } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
+import { getCookie } from "../utils/authHelper";
 
 const AuthContext = createContext();
 
@@ -56,10 +57,14 @@ export const AuthProvider = ({ children }) => {
 
   const signout = useCallback(async () => {
     try {
+      const csrfToken = getCookie("XSRF-TOKEN");
       const response = await axios.post(
         API_BASE_URL + END_POINT_SIGNOUT,
         {},
         {
+          headers: {
+            "X-CSRF-TOKEN": csrfToken,
+          },
           withCredentials: true,
         },
       );
@@ -79,9 +84,14 @@ export const AuthProvider = ({ children }) => {
 
   const deleteUser = useCallback(async (id, email) => {
     try {
+      const csrfToken = getCookie("XSRF-TOKEN");
+
       const response = await axios.delete(
         API_BASE_URL + END_POINT_USER + "/" + id,
         {
+          headers: {
+            "X-CSRF-TOKEN": csrfToken,
+          },
           withCredentials: true,
           data: {
             email: email,

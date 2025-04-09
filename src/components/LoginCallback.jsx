@@ -19,9 +19,10 @@ function LoginCallback() {
         });
         const responseData = response.data.data;
 
-        if (response.data.success) signin(responseData);
-        else setError("Cannot find authorized user information");
-        navigate("/app");
+        if (response.data.success) {
+          signin(responseData);
+          navigate("/app");
+        } else setError("Cannot find authorized user information");
       } catch (err) {
         console.error("Login callback error:", err);
         setError("Authentication failed");

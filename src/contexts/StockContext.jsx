@@ -1,6 +1,7 @@
 import { createContext, useCallback, useMemo, useReducer } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
+import { getCookie } from "../utils/authHelper";
 
 const StockContext = createContext();
 
@@ -121,10 +122,15 @@ export const StockProvider = ({ children }) => {
 
   const addToWatchList = useCallback(async (symbol) => {
     try {
+      const csrfToken = getCookie("XSRF-TOKEN");
+
       const response = await axios.post(
         API_BASE_URL + END_POINT_WATCHLIST,
         { symbol: symbol },
         {
+          headers: {
+            "X-CSRF-TOKEN": csrfToken,
+          },
           withCredentials: true,
         },
       );
@@ -140,9 +146,13 @@ export const StockProvider = ({ children }) => {
 
   const removeFromWatchList = useCallback(async (symbol) => {
     try {
+      const csrfToken = getCookie("XSRF-TOKEN");
       const response = await axios.delete(
         API_BASE_URL + END_POINT_WATCHLIST + "/" + symbol,
         {
+          headers: {
+            "X-CSRF-TOKEN": csrfToken,
+          },
           withCredentials: true,
         },
       );
@@ -189,19 +199,29 @@ export const StockProvider = ({ children }) => {
   const saveStockAlert = useCallback(async (newStockAlert) => {
     try {
       if (!newStockAlert.id) {
+        const csrfToken = getCookie("XSRF-TOKEN");
+
         const response = await axios.post(
           API_BASE_URL + END_POINT_SET_ALERT,
           newStockAlert,
           {
+            headers: {
+              "X-CSRF-TOKEN": csrfToken,
+            },
             withCredentials: true,
           },
         );
         return response.data.success;
       } else {
+        const csrfToken = getCookie("XSRF-TOKEN");
+
         const response = await axios.put(
           API_BASE_URL + END_POINT_SET_ALERT + "/" + newStockAlert.id,
           newStockAlert,
           {
+            headers: {
+              "X-CSRF-TOKEN": csrfToken,
+            },
             withCredentials: true,
           },
         );
