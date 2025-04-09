@@ -2,8 +2,6 @@ import React from "react";
 import GoogleSignInButton from "../components/GoogleSignInButton";
 
 function LoginPage() {
-  const GOOGLE_OAUTH2_URL = import.meta.env.VITE_GOOGLE_OAUTH2_URL;
-  console.log("Google Oauth2 url: " + GOOGLE_OAUTH2_URL);
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center bg-gray-900 p-4">
       <div className="absolute inset-0 z-0">
