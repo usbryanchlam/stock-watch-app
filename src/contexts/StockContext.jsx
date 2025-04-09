@@ -123,7 +123,7 @@ export const StockProvider = ({ children }) => {
   const addToWatchList = useCallback(async (symbol) => {
     try {
       const csrfToken = getCookie("XSRF-TOKEN");
-
+      console.log("CSRF Token: " + csrfToken);
       const response = await axios.post(
         API_BASE_URL + END_POINT_WATCHLIST,
         { symbol: symbol },
