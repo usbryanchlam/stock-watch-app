@@ -23,9 +23,8 @@ function AppHeader() {
 
   async function justSignOut() {
     clearData();
-    const signoutSuccess = await signout();
-    if (signoutSuccess) navigate("/");
-    else alert(error);
+    signout();
+    navigate("/");
   }
 
   async function handleConfirmDeleteAccount() {
@@ -65,7 +64,7 @@ function AppHeader() {
             alt={name}
           />
           <span className="font-medium">{name}</span>
-          <Home size={26} onClick={handleHome} />
+          {/* <Home size={26} onClick={handleHome} /> */}
         </div>
         <div className="relative w-64 md:w-80">
           <input
@@ -89,9 +88,10 @@ function AppHeader() {
           id="signOutBtn"
           className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 transition-colors hover:bg-indigo-700"
           onClick={handleSignOut}
+          aria-label="Sign Out"
         >
           <LogOut size={18} />
-          <span>Sign Out</span>
+          {/* <span>Sign Out</span> */}
         </button>
         {/* Message Dialog */}
         <MessageDialog

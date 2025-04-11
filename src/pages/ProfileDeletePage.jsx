@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 
 function ProfileDeletePage() {
   return (
-    <div className="relative flex min-h-screen w-full items-center justify-center bg-gray-900 p-4">
+    // <div className="relative flex min-h-screen w-full items-center justify-center bg-gray-900 p-4">
+    <div className="relative flex h-dvh w-full items-center justify-center bg-gray-900 p-4">
       <div className="absolute inset-0 z-0">
         <img
           src="/bg.jpg"

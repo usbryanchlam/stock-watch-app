@@ -14,13 +14,26 @@ function LoginCallback() {
   useEffect(() => {
     const handleLoginCallback = async () => {
       try {
+        // Extract token from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+        if (!token) {
+          // If no token is found, redirect to login page
+          setError("No authentication token found");
+          navigate("/login");
+          return;
+        }
+        // console.log("JWT token: " + token);
         const response = await axios.get(API_BASE_URL + END_POINT_USER, {
-          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
         const responseData = response.data.data;
+        const userObj = { ...responseData, token: token };
 
         if (response.data.success) {
-          signin(responseData);
+          signin(userObj);
           navigate("/app");
         } else setError("Cannot find authorized user information");
       } catch (err) {

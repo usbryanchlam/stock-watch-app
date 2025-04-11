@@ -3,7 +3,8 @@ import AppHeader from "../components/AppHeader";
 
 function AppLayout() {
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-black text-white">
+    // <div className="relative flex min-h-screen flex-col overflow-hidden bg-black text-white">
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-black text-white">
       <AppHeader />
       <Outlet />
     </div>

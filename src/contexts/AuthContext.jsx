@@ -1,15 +1,15 @@
 import { createContext, useCallback, useMemo, useReducer } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
-import { getCookie } from "../utils/authHelper";
 
 const AuthContext = createContext();
 
 const initialState = {
-  id: sessionStorage.getItem("id") || null,
-  name: sessionStorage.getItem("name") || null,
-  email: sessionStorage.getItem("email") || null,
-  picture: sessionStorage.getItem("picture") || null,
+  token: null,
+  id: null,
+  name: null,
+  email: null,
+  picture: null,
   error: "",
 };
 
@@ -22,6 +22,7 @@ function reducer(state, action) {
     case "signedin":
       return {
         ...state,
+        token: action.payload.token,
         id: action.payload.id,
         name: action.payload.name,
         email: action.payload.email,
@@ -39,41 +40,20 @@ function reducer(state, action) {
 }
 
 export const AuthProvider = ({ children }) => {
-  const [{ id, name, email, picture, error }, dispatch] = useReducer(
+  const [{ token, id, name, email, picture, error }, dispatch] = useReducer(
     reducer,
     initialState,
   );
 
   const signin = useCallback((userObj) => {
     if (userObj) {
-      sessionStorage.setItem("id", userObj.id);
-      sessionStorage.setItem("name", userObj.name);
-      sessionStorage.setItem("email", userObj.email);
-      sessionStorage.setItem("picture", userObj.picture);
-
       dispatch({ type: "signedin", payload: userObj });
     }
   }, []);
 
   const signout = useCallback(async () => {
     try {
-      const csrfToken = getCookie("XSRF-TOKEN");
-      const response = await axios.post(
-        API_BASE_URL + END_POINT_SIGNOUT,
-        {},
-        {
-          headers: {
-            "X-CSRF-TOKEN": csrfToken,
-          },
-          withCredentials: true,
-        },
-      );
-      sessionStorage.removeItem("id");
-      sessionStorage.removeItem("name");
-      sessionStorage.removeItem("email");
-      sessionStorage.removeItem("picture");
       dispatch({ type: "signedout" });
-      return response.data.success;
     } catch {
       dispatch({
         type: "rejected",
@@ -82,37 +62,47 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const deleteUser = useCallback(async (id, email) => {
-    try {
-      const csrfToken = getCookie("XSRF-TOKEN");
-
-      const response = await axios.delete(
-        API_BASE_URL + END_POINT_USER + "/" + id,
-        {
-          headers: {
-            "X-CSRF-TOKEN": csrfToken,
+  const deleteUser = useCallback(
+    async (id, email) => {
+      try {
+        const response = await axios.delete(
+          API_BASE_URL + END_POINT_USER + "/" + id,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            data: {
+              email: email,
+            },
           },
-          withCredentials: true,
-          data: {
-            email: email,
-          },
-        },
-      );
+        );
 
-      dispatch({ type: "signedout" });
+        dispatch({ type: "signedout" });
 
-      return response.data.success;
-    } catch {
-      dispatch({
-        type: "rejected",
-        payload: "There was an error deleting profile information...",
-      });
-    }
-  }, []);
+        return response.data.success;
+      } catch {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error deleting profile information...",
+        });
+      }
+    },
+    [token],
+  );
 
   const contextValue = useMemo(
-    () => ({ id, name, email, picture, error, signin, signout, deleteUser }),
-    [id, name, email, picture, error, signin, signout, deleteUser],
+    () => ({
+      token,
+      id,
+      name,
+      email,
+      picture,
+      error,
+      signin,
+      signout,
+      deleteUser,
+    }),
+    [token, id, name, email, picture, error, signin, signout, deleteUser],
   );
 
   return (

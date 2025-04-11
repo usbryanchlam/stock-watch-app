@@ -1,7 +1,14 @@
-import { createContext, useCallback, useMemo, useReducer } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+} from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
-import { getCookie } from "../utils/authHelper";
+import AuthContext from "./AuthContext";
 
 const StockContext = createContext();
 
@@ -11,8 +18,8 @@ const initialState = {
   isLoading: false,
   queryString: "",
   searchResult: [],
-  currentStock: JSON.parse(sessionStorage.getItem("currentStock")) || {},
-  stockAlert: JSON.parse(sessionStorage.getItem("stockAlert")) || null,
+  currentStock: {},
+  stockAlert: null,
   error: "",
 };
 
@@ -77,167 +84,180 @@ export const StockProvider = ({ children }) => {
     dispatch,
   ] = useReducer(reducer, initialState);
 
+  const { token } = useContext(AuthContext);
+
   const loadWatchedStock = useCallback(async () => {
+    // console.log("called loadWatchedStock, token: " + token);
+    if (!token) return;
     dispatch({ type: "loading" });
     try {
       const response = await axios.get(API_BASE_URL + END_POINT_WATCHLIST, {
-        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
       const responseData = response.data.data;
       dispatch({ type: "watchedStocks/loaded", payload: responseData });
       const localeString = new Date(response.data.timestamp).toLocaleString();
       dispatch({ type: "refreshing", payload: localeString });
-
-      sessionStorage.removeItem("currentStock");
-      sessionStorage.removeItem("stockAlert");
     } catch {
       dispatch({
         type: "rejected",
         payload: "There was an error loading watched stocks...",
       });
     }
-  }, []);
+  }, [token]);
 
-  const searchStock = useCallback(async (queryText) => {
-    if (!queryText && queryText.length < 3) return;
-    dispatch({ type: "loading" });
-    try {
-      const response = await axios.get(API_BASE_URL + END_POINT_SEARCH_STOCK, {
-        withCredentials: true,
-        params: {
-          query: `${queryText}`,
-        },
-      });
-
-      const responseData = response.data.data;
-      dispatch({ type: "searched", payload: responseData });
-      dispatch({ type: "setting/queryText", payload: queryText });
-    } catch {
-      dispatch({
-        type: "rejected",
-        payload: "There was an error loading search stock result...",
-      });
-    }
-  }, []);
-
-  const addToWatchList = useCallback(async (symbol) => {
-    try {
-      const csrfToken = getCookie("XSRF-TOKEN");
-      console.log("CSRF Token: " + csrfToken);
-      const response = await axios.post(
-        API_BASE_URL + END_POINT_WATCHLIST,
-        { symbol: symbol },
-        {
-          headers: {
-            "X-CSRF-TOKEN": csrfToken,
-          },
-          withCredentials: true,
-        },
-      );
-
-      return response.data.success;
-    } catch {
-      dispatch({
-        type: "rejected",
-        payload: "There was an error adding stock to the watch list...",
-      });
-    }
-  }, []);
-
-  const removeFromWatchList = useCallback(async (symbol) => {
-    try {
-      const csrfToken = getCookie("XSRF-TOKEN");
-      const response = await axios.delete(
-        API_BASE_URL + END_POINT_WATCHLIST + "/" + symbol,
-        {
-          headers: {
-            "X-CSRF-TOKEN": csrfToken,
-          },
-          withCredentials: true,
-        },
-      );
-
-      dispatch({
-        type: "removedStock",
-        payload: watchedStocks.filter((stock) => stock.symbol !== symbol),
-      });
-
-      return response.data.success;
-    } catch {
-      dispatch({
-        type: "rejected",
-        payload: "There was an error removing stock from the watch list...",
-      });
-    }
-  }, []);
-
-  const getStockAlert = useCallback(async (stock) => {
-    try {
-      const response = await axios.get(
-        API_BASE_URL + END_POINT_SET_ALERT + "/" + stock.symbol,
-        {
-          withCredentials: true,
-        },
-      );
-
-      const responseData = response.data.data;
-
-      sessionStorage.setItem("currentStock", JSON.stringify(stock));
-      sessionStorage.setItem("stockAlert", JSON.stringify(responseData));
-
-      dispatch({ type: "viewing/stock", payload: stock });
-      dispatch({ type: "setting/alert", payload: responseData });
-      return response.data.success;
-    } catch {
-      dispatch({
-        type: "rejected",
-        payload: "There was an error getting existing alert of the stock...",
-      });
-    }
-  }, []);
-
-  const saveStockAlert = useCallback(async (newStockAlert) => {
-    try {
-      if (!newStockAlert.id) {
-        const csrfToken = getCookie("XSRF-TOKEN");
-
-        const response = await axios.post(
-          API_BASE_URL + END_POINT_SET_ALERT,
-          newStockAlert,
+  const searchStock = useCallback(
+    async (queryText) => {
+      // console.log("called searchStock, token: " + token);
+      if (!queryText && queryText.length < 3) return;
+      dispatch({ type: "loading" });
+      try {
+        const response = await axios.get(
+          API_BASE_URL + END_POINT_SEARCH_STOCK,
           {
             headers: {
-              "X-CSRF-TOKEN": csrfToken,
+              Authorization: `Bearer ${token}`,
             },
-            withCredentials: true,
+            params: {
+              query: `${queryText}`,
+            },
           },
         );
-        return response.data.success;
-      } else {
-        const csrfToken = getCookie("XSRF-TOKEN");
 
-        const response = await axios.put(
-          API_BASE_URL + END_POINT_SET_ALERT + "/" + newStockAlert.id,
-          newStockAlert,
-          {
-            headers: {
-              "X-CSRF-TOKEN": csrfToken,
-            },
-            withCredentials: true,
-          },
-        );
-        return response.data.success;
+        const responseData = response.data.data;
+        dispatch({ type: "searched", payload: responseData });
+        dispatch({ type: "setting/queryText", payload: queryText });
+      } catch {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error loading search stock result...",
+        });
       }
-    } catch {
-      dispatch({
-        type: "rejected",
-        payload: "There was an error adding stock to the watch list...",
-      });
-    }
-  }, []);
+    },
+    [token],
+  );
+
+  const addToWatchList = useCallback(
+    async (symbol) => {
+      // console.log("called addToWatchList, token: " + token);
+      try {
+        const response = await axios.post(
+          API_BASE_URL + END_POINT_WATCHLIST,
+          { symbol: symbol },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        return response.data.success;
+      } catch {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error adding stock to the watch list...",
+        });
+      }
+    },
+    [token],
+  );
+
+  const removeFromWatchList = useCallback(
+    async (symbol) => {
+      // console.log("called removeFromWatchList, token: " + token);
+      try {
+        const response = await axios.delete(
+          API_BASE_URL + END_POINT_WATCHLIST + "/" + symbol,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        dispatch({
+          type: "removedStock",
+          payload: watchedStocks.filter((stock) => stock.symbol !== symbol),
+        });
+
+        return response.data.success;
+      } catch {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error removing stock from the watch list...",
+        });
+      }
+    },
+    [token],
+  );
+
+  const getStockAlert = useCallback(
+    async (stock) => {
+      // console.log("called getStockAlert, token: " + token);
+      try {
+        const response = await axios.get(
+          API_BASE_URL + END_POINT_SET_ALERT + "/" + stock.symbol,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        const responseData = response.data.data;
+        dispatch({ type: "viewing/stock", payload: stock });
+        dispatch({ type: "setting/alert", payload: responseData });
+        return response.data.success;
+      } catch {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error getting existing alert of the stock...",
+        });
+      }
+    },
+    [token],
+  );
+
+  const saveStockAlert = useCallback(
+    async (newStockAlert) => {
+      // console.log("called saveStockAlert, token: " + token);
+      try {
+        if (!newStockAlert.id) {
+          const response = await axios.post(
+            API_BASE_URL + END_POINT_SET_ALERT,
+            newStockAlert,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          return response.data.success;
+        } else {
+          const response = await axios.put(
+            API_BASE_URL + END_POINT_SET_ALERT + "/" + newStockAlert.id,
+            newStockAlert,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+          return response.data.success;
+        }
+      } catch {
+        dispatch({
+          type: "rejected",
+          payload: "There was an error adding stock to the watch list...",
+        });
+      }
+    },
+    [token],
+  );
 
   const clearData = useCallback(() => {
-    sessionStorage.removeItem("currentStock");
-    sessionStorage.removeItem("stockAlert");
     dispatch({ type: "clearing", payload: initialState });
   }, []);
 
