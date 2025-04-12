@@ -96,7 +96,7 @@ export const StockProvider = ({ children }) => {
       });
       const responseData = response.data.data;
       dispatch({ type: "watchedStocks/loaded", payload: responseData });
-      const localeString = new Date(response.data.timestamp).toLocaleString();
+      const localeString = new Date().toLocaleString();
       dispatch({ type: "refreshing", payload: localeString });
     } catch {
       dispatch({
